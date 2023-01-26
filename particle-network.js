@@ -75,7 +75,7 @@
     options = options !== undefined ? options : {};
     this.options = {
       particleColor: (options.particleColor !== undefined) ? options.particleColor : '#fff',
-      background: (options.background !== undefined) ? options.background : '#1a252f',
+      background: (options.background !== undefined) ? options.background : '#11ffee00',
       interactive: (options.interactive !== undefined) ? options.interactive : true,
       velocity: this.setVelocity(options.speed),
       density: this.setDensity(options.density)
@@ -98,7 +98,7 @@
     });
 
     // Check if valid background hex color
-    if ((/(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i).test(this.options.background)) {
+    if ((/(^#[0-9A-F]{8}$)|(^#[0-9A-F]{3}$)/i).test(this.options.background)) {
       this.setStyles(this.bgDiv, {
         'background': this.options.background
       });
@@ -117,7 +117,7 @@
     }
 
     // Check if valid particleColor
-    if (!(/(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i).test(this.options.particleColor)) {
+    if (!(/(^#[0-9A-F]{8}$)|(^#[0-9A-F]{3}$)/i).test(this.options.particleColor)) {
       console.error('Please specify a valid particleColor hexadecimal color');
       return false;
     }
@@ -126,9 +126,10 @@
     this.canvas = document.createElement('canvas');
     this.canvasDiv.appendChild(this.canvas);
     this.ctx = this.canvas.getContext('2d');
-    this.canvas.width = this.canvasDiv.size.width;
-    this.canvas.height = this.canvasDiv.size.height;
-    this.setStyles(this.canvasDiv, { 'position': 'relative' });
+    var canvasRect = this.canvasDiv.getBoundingClientRect();
+    this.canvas.width = window.innerWidth - canvasRect.left;
+    this.canvas.height = window.innerHeight - canvasRect.top;
+    this.setStyles(this.canvasDiv, { 'position': 'absolute' });
     this.setStyles(this.canvas, {
       'z-index': '20',
       'position': 'relative'
@@ -184,8 +185,9 @@
 
       // Mouse event listeners
       this.canvas.addEventListener('mousemove', function (e) {
-        this.mouseParticle.x = e.clientX - this.canvas.offsetLeft;
-        this.mouseParticle.y = e.clientY - this.canvas.offsetTop;
+        var canvasRect = this.canvas.getBoundingClientRect();
+        this.mouseParticle.x = e.clientX - canvasRect.left;
+        this.mouseParticle.y = e.clientY - canvasRect.top;
       }.bind(this));
 
       this.canvas.addEventListener('mouseup', function (e) {
