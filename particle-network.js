@@ -30,6 +30,15 @@
     this.canvas = parent.canvas;
     this.ctx = parent.ctx;
     this.particleColor = parent.options.particleColor;
+    this.opacity_status == true;
+    this.opacity_value = 0.98927153781200905 * Math.random();
+    this.opacity = 0;
+    this.opacity_min = 0;
+    this.size_status == true;
+    this.radius = 0;
+    this.size_min = 0;
+    this.size = 3 * Math.random();
+
 
     this.x = Math.random() * this.canvas.width;
     this.y = Math.random() * this.canvas.height;
@@ -51,14 +60,34 @@
     // Update position
     this.x += this.velocity.x;
     this.y += this.velocity.y;
+
+    /* change opacity status */
+    if(this.opacity_status == true) {
+      if(this.opacity >= this.opacity_value) this.opacity_status = false;
+      this.opacity += 0.002;
+    }else {
+      if(this.opacity <= this.opacity_min) this.opacity_status = true;
+      this.opacity -= 0.002;
+    }
+    if(this.opacity < 0) this.opacity = 0;
+
+    /* change size */
+    if(this.size_status == true){
+      if(this.radius >= this.size) this.size_status = false;
+      this.radius += 0.02;
+    }else{
+      if(this.radius <= this.size_min) this.size_status = true;
+      this.radius -= 0.02;
+    }
+    if(this.radius < 0) this.radius = 0;
   };
   Particle.prototype.draw = function () {
 
     // Draw particle
     this.ctx.beginPath();
-    this.ctx.fillStyle = this.particleColor;
+    this.ctx.fillStyle = color_value = 'rgba('+255+','+255+','+255+','+this.opacity+')';
     this.ctx.globalAlpha = 0.7;
-    this.ctx.arc(this.x, this.y, 1.5, 0, 2 * Math.PI);
+    this.ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
     this.ctx.fill();
   };
 
@@ -229,9 +258,9 @@
         this.ctx.beginPath();
         this.ctx.strokeStyle = this.options.particleColor;
         this.ctx.globalAlpha = (120 - distance) / 120;
-        this.ctx.lineWidth = 0.7;
-        this.ctx.moveTo(this.particles[i].x, this.particles[i].y);
-        this.ctx.lineTo(this.particles[j].x, this.particles[j].y);
+        // this.ctx.lineWidth = 0.7;
+        // this.ctx.moveTo(this.particles[i].x, this.particles[i].y);
+        // this.ctx.lineTo(this.particles[j].x, this.particles[j].y);
         this.ctx.stroke();
       }
     }
@@ -257,7 +286,7 @@
   // Helper method to set density multiplier
   ParticleNetwork.prototype.setDensity = function (density) {
     if (density === 'high') {
-      return 5000;
+      return 1000;
     }
     else if (density === 'low') {
       return 20000;
