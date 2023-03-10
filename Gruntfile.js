@@ -14,6 +14,12 @@ module.exports = function (grunt) {
     },
     uglify: {
       options: {
+        ecma: 6, // set the ECMAScript version to 6 or higher
+        compress: true,
+        mangle: true,
+        output: {
+          beautify: true
+        },
         mangleProperties: true,
         reserveDOMProperties: true,
         exceptionsFiles: ['mangleExceptions.json']

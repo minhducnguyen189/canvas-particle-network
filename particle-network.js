@@ -30,14 +30,16 @@
     this.canvas = parent.canvas;
     this.ctx = parent.ctx;
     this.particleColor = parent.options.particleColor;
+    this.use_opacity = parent.options.useOpacity;
     this.opacity_status == true;
-    this.opacity_value = 0.98927153781200905 * Math.random();
-    this.opacity = 0;
-    this.opacity_min = 0;
+    this.opacity_value = parent.options.opacityValue * Math.random();
+    this.opacity = 1;
+    this.opacity_min = parent.options.opacityMin;
+    this.change_size = parent.options.changeSize;
     this.size_status == true;
-    this.radius = 0;
-    this.size_min = 0;
-    this.size = 3 * Math.random();
+    this.radius = 1;
+    this.size_min = parent.options.sizeMin;
+    this.size = parent.options.size * Math.random();
 
 
     this.x = Math.random() * this.canvas.width;
@@ -47,6 +49,7 @@
       y: (Math.random() - 0.5) * parent.options.velocity
     };
   };
+  
   Particle.prototype.update = function () {
 
     // Change dir if outside map
@@ -62,30 +65,34 @@
     this.y += this.velocity.y;
 
     /* change opacity status */
-    if(this.opacity_status == true) {
-      if(this.opacity >= this.opacity_value) this.opacity_status = false;
-      this.opacity += 0.002;
-    }else {
-      if(this.opacity <= this.opacity_min) this.opacity_status = true;
-      this.opacity -= 0.002;
+    if (this.use_opacity) {
+      if (this.opacity_status == true) {
+        if (this.opacity >= this.opacity_value) this.opacity_status = false;
+        this.opacity += 0.002;
+      } else {
+        if (this.opacity <= this.opacity_min) this.opacity_status = true;
+        this.opacity -= 0.002;
+      }
+      if (this.opacity < 0) this.opacity = 0;
     }
-    if(this.opacity < 0) this.opacity = 0;
 
     /* change size */
-    if(this.size_status == true){
-      if(this.radius >= this.size) this.size_status = false;
-      this.radius += 0.02;
-    }else{
-      if(this.radius <= this.size_min) this.size_status = true;
-      this.radius -= 0.02;
+    if (this.change_size) {
+      if (this.size_status == true) {
+        if (this.radius >= this.size) this.size_status = false;
+        this.radius += 0.02;
+      } else {
+        if (this.radius <= this.size_min) this.size_status = true;
+        this.radius -= 0.02;
+      }
+      if (this.radius < 0) this.radius = 0;
     }
-    if(this.radius < 0) this.radius = 0;
   };
   Particle.prototype.draw = function () {
 
     // Draw particle
     this.ctx.beginPath();
-    this.ctx.fillStyle = color_value = 'rgba('+255+','+255+','+255+','+this.opacity+')';
+    this.ctx.fillStyle = convertHexToRGBA(this.particleColor, this.opacity);
     this.ctx.globalAlpha = 0.7;
     this.ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
     this.ctx.fill();
@@ -103,11 +110,17 @@
     // Set options
     options = options !== undefined ? options : {};
     this.options = {
-      particleColor: (options.particleColor !== undefined) ? options.particleColor : '#fff',
+      particleColor: (options.particleColor !== undefined) ? options.particleColor : '#ffffff',
       background: (options.background !== undefined) ? options.background : '#11ffee00',
       interactive: (options.interactive !== undefined) ? options.interactive : true,
       velocity: this.setVelocity(options.speed),
-      density: this.setDensity(options.density)
+      density: this.setDensity(options.density),
+      opacityValue: (options.opacityValue !== undefined) ? options.opacityValue : 0.98927153781200905,
+      opacityMin: (options.opacityValue !== undefined) ? options.opacityValue : 0,
+      useOpacity: (options.useOpacity !== undefined) ? options.useOpacity : false,
+      changeSize: (options.changeSize !== undefined) ? options.changeSize : false,
+      size: (options.size !== undefined) ? options.size : 3,
+      sizeMin: (options.sizeMin !== undefined) ? options.sizeMin : 0
     };
 
     this.init();
@@ -127,7 +140,7 @@
     });
 
     // Check if valid background hex color
-    if ((/(^#[0-9A-F]{8}$)|(^#[0-9A-F]{3}$)/i).test(this.options.background)) {
+    if ((/(^#[0-9A-F]{8}$)|(^#[0-9A-F]{6}$)/i).test(this.options.background)) {
       this.setStyles(this.bgDiv, {
         'background': this.options.background
       });
@@ -146,7 +159,7 @@
     }
 
     // Check if valid particleColor
-    if (!(/(^#[0-9A-F]{8}$)|(^#[0-9A-F]{3}$)/i).test(this.options.particleColor)) {
+    if (!(/(^#[0-9A-F]{8}$)|(^#[0-9A-F]{6}$)/i).test(this.options.particleColor)) {
       console.error('Please specify a valid particleColor hexadecimal color');
       return false;
     }
@@ -299,6 +312,28 @@
       div.style[property] = styles[property];
     }
   }
+  // helper method to convert Hex color to RGB
+  function convertHexToRGBA(hexString, opacity) {
+    let hasAlpha = false;
+    let hex = hexString.slice(hexString.startsWith("#") ? 1 : 0);
+
+    if (hex.length === 3) {
+      hex = [...hex].map((x) => x + x).join("");
+    } else if (hex.length === 8) {
+      hasAlpha = true;
+    }
+
+    hex = parseInt(hex, 16);
+
+    const red = hex >>> (hasAlpha ? 24 : 16);
+    const green = (hex & (hasAlpha ? 0x00ff0000 : 0x00ff00)) >>> (hasAlpha ? 16 : 8);
+    const blue = (hex & (hasAlpha ? 0x0000ff00 : 0x0000ff)) >>> (hasAlpha ? 8 : 0);
+    const alpha = hasAlpha ? `, ${hex & 0x000000ff}` : "";
+
+    return `rgba(${red}, ${green}, ${blue}${alpha}, ${opacity})`;
+  }
+
+
 
   return ParticleNetwork;
 
